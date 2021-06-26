@@ -10,8 +10,13 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.table import Table
+from pathlib import Path
 
 matplotlib.use('Agg')
+
+FILE_ROOT = Path(__file__).parent.parent
+
+print(FILE_ROOT)
 
 WORLD_SIZE = 5
 A_POS = [0, 1]
@@ -137,7 +142,7 @@ def figure_3_2():
                     new_value[i, j] += ACTION_PROB * (reward + DISCOUNT * value[next_i, next_j])
         if np.sum(np.abs(value - new_value)) < 1e-4:
             draw_image(np.round(new_value, decimals=2))
-            plt.savefig('../images/figure_3_2.png')
+            plt.savefig(Path(FILE_ROOT) / 'images/figure_3_2.png')
             plt.close()
             break
         value = new_value
@@ -146,6 +151,10 @@ def figure_3_2_linear_system():
     '''
     Here we solve the linear system of equations to find the exact solution.
     We do this by filling the coefficients for each of the states with their respective right side constant.
+    
+    Using the equation
+    (I - discount*P)*v = r
+    v = (I - discount*P)^{-1}*r
     '''
     A = -1 * np.eye(WORLD_SIZE * WORLD_SIZE)
     b = np.zeros(WORLD_SIZE * WORLD_SIZE)
@@ -162,7 +171,7 @@ def figure_3_2_linear_system():
 
     x = np.linalg.solve(A, b)
     draw_image(np.round(x.reshape(WORLD_SIZE, WORLD_SIZE), decimals=2))
-    plt.savefig('../images/figure_3_2_linear_system.png')
+    plt.savefig(Path(FILE_ROOT) / 'images/figure_3_2_linear_system.png')
     plt.close()
 
 def figure_3_5():
@@ -180,10 +189,10 @@ def figure_3_5():
                 new_value[i, j] = np.max(values)
         if np.sum(np.abs(new_value - value)) < 1e-4:
             draw_image(np.round(new_value, decimals=2))
-            plt.savefig('../images/figure_3_5.png')
+            plt.savefig(Path(FILE_ROOT) / 'images/figure_3_5.png')
             plt.close()
             draw_policy(new_value)
-            plt.savefig('../images/figure_3_5_policy.png')
+            plt.savefig(Path(FILE_ROOT) / 'images/figure_3_5_policy.png')
             plt.close()
             break
         value = new_value

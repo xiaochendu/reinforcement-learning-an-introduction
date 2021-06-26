@@ -6,12 +6,15 @@
 # declaration at the top                                              #
 #######################################################################
 
+from pathlib import Path
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.table import Table
 
 matplotlib.use('Agg')
+
+FILE_ROOT = Path(__file__).parent.parent
 
 WORLD_SIZE = 4
 # left, up, right, down
@@ -99,9 +102,8 @@ def figure_4_1():
     print('In-place: {} iterations'.format(asycn_iteration))
     print('Synchronous: {} iterations'.format(sync_iteration))
 
-    plt.savefig('../images/figure_4_1.png')
+    plt.savefig(Path(FILE_ROOT) / 'images/figure_4_1.png')
     plt.close()
-
 
 if __name__ == '__main__':
     figure_4_1()

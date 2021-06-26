@@ -9,8 +9,13 @@
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+from pathlib import Path
 
 matplotlib.use('Agg')
+
+FILE_ROOT = Path(__file__).parent.parent
+
+print(FILE_ROOT)
 
 # goal
 GOAL = 100
@@ -75,7 +80,7 @@ def figure_4_3():
     plt.xlabel('Capital')
     plt.ylabel('Final policy (stake)')
 
-    plt.savefig('../images/figure_4_3.png')
+    plt.savefig(Path(FILE_ROOT) / 'images/figure_4_3.png')
     plt.close()
 
 
