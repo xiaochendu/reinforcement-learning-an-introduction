@@ -269,6 +269,33 @@ def figure_5_2():
     plt.show()
     plt.close()
 
+
+def figure_5_3():
+    true_value = -0.27726
+    episodes = 10000
+    runs = 100
+    error_ordinary = np.zeros(episodes)
+    error_weighted = np.zeros(episodes)
+    for i in tqdm(range(0, runs)):
+        ordinary_sampling_, weighted_sampling_ = mc_off_policy_evaluation(episodes)
+        # get the squared error
+        error_ordinary += np.power(ordinary_sampling_ - true_value, 2)
+        error_weighted += np.power(weighted_sampling_ - true_value, 2)
+    error_ordinary /= runs
+    error_weighted /= runs
+
+    plt.plot(np.arange(1, episodes + 1), error_ordinary, color='green', label='Ordinary Importance Sampling')
+    plt.plot(np.arange(1, episodes + 1), error_weighted, color='red', label='Weighted Importance Sampling')
+    plt.ylim(-0.1, 5)
+    plt.xlabel('Episodes (log scale)')
+    plt.ylabel(f'Mean square error\n(average over {runs} runs)')
+    plt.xscale('log')
+    plt.legend()
+
+    # plt.savefig('../images/figure_5_3.png')
+    plt.show()
+    plt.close()
+
 # %%
 def mc_prediction(stop_iter=100):
     # First-visit MC prediction
@@ -297,7 +324,7 @@ def mc_prediction(stop_iter=100):
 
 # %%
 def mc_es_control(stop_iter=100):
-    action_values = np.zeros((10, 10, 2, 2)) # (player_state, dealer_visible_card, usable_ace, policy
+    action_values = np.zeros((10, 10, 2, 2)) # (player_state, dealer_visible_card, usable_ace, policy)
     action_values_count = np.ones_like(action_values)
     
     def greedy_policy(player_sum, dealer_visible_card, player_usable_ace):
@@ -339,9 +366,67 @@ def mc_es_control(stop_iter=100):
     return action_values
 
 # %%
+def mc_off_policy_evaluation(stop_iter=100):
+    # incremental implementation of weighted
+    values = np.zeros((10, 10, 2)) # (player_state, dealer_visible_card, usable_ace, policy)
+    values_ordinary = np.zeros_like(values)
+    C_weighted = np.zeros_like(values)
+    C_ordinary = np.zeros_like(C_weighted)
+
+
+
+    returns = []
+    ord_returns = []
+
+    def random_policy(*args):
+        return np.random.choice([HIT, STICK])
+
+    STOP_ITER = stop_iter
+    for iter in tqdm(range(STOP_ITER)):
+        # generate player run of S_0, A_0, R_1, S_1, ..., S_t-1, A_t-1, R_t
+        initial_state = [True, 13, 2]
+        initial_action = random_policy()
+
+        W = 1
+        curr_policy = random_policy
+        player_states, dealer_visible_card, player_usable_ace, player_actions, reward = generate_episode(initial_state, initial_action, curr_policy)
+        T = len(player_states)
+        G = reward
+        numerator = 1.0
+        denominator = 1.0 # denominator for uniform policy
+
+        for t in reversed(range(T)):
+            curr_state = get_curr_state(player_states[t], dealer_visible_card, player_usable_ace)
+            curr_action = player_actions[t]
+            # curr_index = (*curr_state, curr_action)
+            C_weighted[curr_state] += W
+            C_ordinary[curr_state] += 1
+            values[curr_state] += W / C_weighted[curr_state] * (G - values[curr_state])
+            values_ordinary[curr_state] += W / C_ordinary[curr_state] * (G - values_ordinary[curr_state])
+
+            if curr_action == default_policy(player_states[t]):
+                denominator *= 0.5
+            else:
+                numerator = 0.0
+                break
+            rho = numerator/denominator
+            W *= rho
+
+        eval_state = get_curr_state(13, 2, 1)
+        returns.append(values[eval_state])
+        ord_returns.append(values_ordinary[eval_state])
+    # print(ord_returns)
+    # print(returns)
+    ord_returns = np.array(ord_returns)
+    returns = np.array(returns)
+    return ord_returns, returns
+
+# %%
 if __name__ == "__main__":
     # mc_prediction(100)
     # figure_5_1()
     # mc_es_control(100)
     # issue with simulation resulting in policy mismatch
-    figure_5_2()
+    # figure_5_2()
+    # mc_off_policy_evaluation(100)
+    figure_5_3()
